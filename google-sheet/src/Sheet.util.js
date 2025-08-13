@@ -1,11 +1,11 @@
-export const calculateRowAndColumnsToDisplay =(size, visibleArea) =>{
+export const calculateRowAndColumnsToDisplay =(size, visibleArea,offset) =>{
 
     const visible = []
     const start =[]
     const end = []
 
     let idx = 0;
-    let nextStart = 0
+    let nextStart = offset
 
     while( nextStart  < visibleArea)
     {
@@ -30,8 +30,18 @@ export const resizeCanvas = (canvas) => {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   
-//   // Set CSS size
-//   canvas.style.width = rect.width + 'px';
-//   canvas.style.height = rect.height + 'px';
+  // Set CSS size
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
 
 }
+
+export const getEncodedCharacter = (index) => {
+  let label = '';
+  let num = index;
+  while (num >= 0) {
+    label = String.fromCharCode(65 + (num % 26)) + label;
+    num = Math.floor(num / 26) - 1;
+  }
+  return label;
+};

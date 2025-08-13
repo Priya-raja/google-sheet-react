@@ -1,5 +1,5 @@
 import React,{useRef,useState, useEffect} from 'react'
-import {calculateRowAndColumnsToDisplay, resizeCanvas} from './Sheet.util'
+import {calculateRowAndColumnsToDisplay, resizeCanvas,getEncodedCharacter} from './Sheet.util'
 
 export const Sheet = () => {
   const canvasRef = useRef(null);
@@ -10,6 +10,12 @@ export const Sheet = () => {
 
   const cellWidth = 100;
   const cellHeight = 22;
+  const rowHeaderHeight = 22
+  const colHeaderWidth = 50
+
+
+  const headerColor ='#e7eef5ff'
+
 
   // Update dimensions on window resize
   useEffect(() => {
@@ -26,9 +32,9 @@ export const Sheet = () => {
 
   // Calculate visible cells based on current dimensions
   const { visible: visibleColumns, start: columnStart, end: columnEnd } = 
-    calculateRowAndColumnsToDisplay(cellWidth, dimensions.width);
+    calculateRowAndColumnsToDisplay(cellWidth, dimensions.width, colHeaderWidth);
   const { visible: visibleRows, start: rowStart, end: rowEnd } = 
-    calculateRowAndColumnsToDisplay(cellHeight, dimensions.height);
+    calculateRowAndColumnsToDisplay(cellHeight, dimensions.height,rowHeaderHeight);
 
   console.log("columns", visibleColumns.length, columnStart, columnEnd);
   console.log("rows", visibleRows.length, rowStart, rowEnd);
@@ -49,23 +55,50 @@ export const Sheet = () => {
     ctx.lineWidth = 1;
 
     // Draw columns
-    let startX = 0;
+    let startX = colHeaderWidth;
     for (const col of visibleColumns) {
       ctx.beginPath();
-      ctx.moveTo(startX, 0);
+      ctx.moveTo(startX, rowHeaderHeight);
       ctx.lineTo(startX, dimensions.height);
       ctx.stroke();
       startX += cellWidth;
     }
 
     // Draw rows
-    let startY = 0;
+    let startY = rowHeaderHeight;
     for (const row of visibleRows) {
       ctx.beginPath();
-      ctx.moveTo(0, startY);
+      ctx.moveTo(colHeaderWidth, startY);
       ctx.lineTo(dimensions.width, startY);
       ctx.stroke();
       startY += cellHeight;
+    }
+
+    //Draw row header lines
+    
+    startY = rowHeaderHeight;
+
+    ctx.fillStyle = headerColor;
+    ctx.fillRect(0,0,colHeaderWidth, canvas.height)
+    for (const row of visibleRows) {
+      ctx.beginPath();
+      ctx.moveTo(0, startY);
+      ctx.lineTo(colHeaderWidth, startY);
+      ctx.stroke();
+      startY += cellHeight;
+    }
+
+    //Draw column header lines
+    startX = colHeaderWidth;
+   
+    ctx.fillRect(0,0,canvas.width,rowHeaderHeight )
+
+    for (const col of visibleColumns) {
+      ctx.beginPath();
+      ctx.moveTo(startX, 0);
+      ctx.lineTo(startX, rowHeaderHeight);
+      ctx.stroke();
+      startX += cellWidth;
     }
 
     // Draw final border lines
@@ -75,6 +108,39 @@ export const Sheet = () => {
     ctx.moveTo(0, startY);
     ctx.lineTo(dimensions.width, startY);
     ctx.stroke();
+
+    //Write labels for columns
+    startX = colHeaderWidth;
+
+    ctx.textAlign= 'center';
+    ctx.textBaseline = 'middle'
+    ctx.font = "13px sans-serif"
+    ctx.fillStyle="grey"
+
+    for (const col of visibleColumns) {
+      const centreX = startX + (cellWidth * 0.5)
+      const centreY = rowHeaderHeight * 0.5
+
+      const content= getEncodedCharacter(col);
+      ctx.fillText(content, centreX, centreY)
+      startX += cellWidth;
+    } 
+
+    //Write labels for rows
+
+    startY = rowHeaderHeight;
+
+    for (const row of visibleRows) {
+
+     const centreX = colHeaderWidth * 0.5
+    
+      const centreY =  startY + (cellHeight * 0.5)
+
+      const content= row + 1;
+       ctx.fillText(content, centreX, centreY)
+
+      startY += cellHeight;
+    }
 
   }, [dimensions, visibleColumns, visibleRows]);
 
